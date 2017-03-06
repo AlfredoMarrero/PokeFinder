@@ -74,10 +74,18 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
         var annotationView: MKAnnotationView?
+        var annoIdentifier = "Pokemon"
         
         if annotation.isKind(of: MKUserLocation.self) {
             annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "User")
             annotationView?.image = UIImage(named: "ash")
+        } else if let deqAnno = mapView.dequeueReusableAnnotationView(withIdentifier: annoIdentifier) {
+            annotationView = deqAnno
+            annotationView?.annotation = annotation
+        } else {
+            let av = MKAnnotationView(annotation: annotation, reuseIdentifier: annoIdentifier)
+            annotationView = av
+        
         }
         
         return annotationView
@@ -87,9 +95,32 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         geoFire.setLocation(location, forKey: "\(pokeId)")
     }
     
+    func showSighthingsOnMap(location: CLLocation) {
+        let circleQuery = geoFire!.query(at: location, withRadius: 2.5)
+        
+        _ = circleQuery?.observe(GFEventType.keyEntered, with: {(key, location) in
+            if let key = key, let location = location {
+            
+                let anno = PokeAnnotation (coordinate: location.coordinate, pokemonNumber: Int(key)!)
+                self.mapView.addAnnotation(anno)
+            }
+        })
+    }
     
     @IBAction func spotRandomPokemon(_ sender: Any) {
+        
+        let location = CLLocation (latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude)
+        
+        let rand = arc4random_uniform(151) + 1
+        createSighting(forLocation: location, withPokemon: Int(rand))
     }
     
 }
+
+
+
+
+
+
+
 
