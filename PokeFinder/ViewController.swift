@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import FirebaseDatabase
 
-class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
+class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, ReturnDataProtocol {
 
     @IBOutlet weak var mapView: MKMapView!
     
@@ -30,11 +30,15 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         geoFireRef = FIRDatabase.database().reference()
         geoFire = GeoFire(firebaseRef: geoFireRef)
         
+     
+        
         locationManager.delegate = self
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
+        //ViewController.returnDataProtocol = self
+        
         locationAuthStatus()
     }
     
@@ -130,12 +134,28 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }
     }
     
+    func sendDataToPreviousVC(pokemon: PokeAnnotation) {
+        let location = CLLocation (latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude)
+        createSighting(forLocation: location, withPokemon: pokemon.pokemonNumber)
+
+    }
+    
+    
     @IBAction func spotRandomPokemon(_ sender: Any) {
         
         let location = CLLocation (latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude)
         
         let rand = arc4random_uniform(151) + 1
         createSighting(forLocation: location, withPokemon: Int(rand))
+    }
+    
+    
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let  pokemonSelectorVC = segue.destination as? PokemonSelectorVC  {
+            pokemonSelectorVC.returnDataProtocol = self
+        
+        }
     }
     
 }
